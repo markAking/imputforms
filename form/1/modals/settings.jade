@@ -1,0 +1,77 @@
+input.hide(id="formBackgroundImage" type='file' name='file' onchange='angular.element(this).scope().fileChanged(this)')
+form(name='inputform' bindonce="i18n")
+  .row
+    .small-12.columns.title
+      h2(bo-bind="i18n.module_form_heading_form_settings")
+  .row
+    .columns.small-12
+      label(bo-bind="i18n.module_form_label_form_title")
+      input(type="text" maxlength="40" placeholder="{{i18n.module_form_placeholder_form_title}}" ng-model="state.title")
+  .row
+    .columns.small-12
+      label(bo-bind="i18n.module_form_label_form_description")
+      input(type="text" maxlength="120" placeholder="{{i18n.module_form_placeholder_form_description}}" ng-model="state.description")
+  .row
+    .columns.small-12
+      label(bo-bind="i18n.module_form_label_form_success_title")
+      input(type="text" maxlength="40" placeholder="{{i18n.module_form_placeholder_form_success_title}}" ng-model="state.submitSuccessTitle")
+  .row
+    .columns.small-12
+      label(bo-bind="i18n.module_form_label_form_success_description")
+      input(type="text" maxlength="120" placeholder="{{i18n.module_form_placeholder_form_description}}" ng-model="state.submitSuccessDescription")
+  .row
+    .columns.small-12
+      label(bo-bind="i18n.module_form_label_form_error_message")
+      input(type="text" maxlength="40" placeholder="{{i18n.module_form_placeholder_form_error_message}}" ng-model="state.submitErrorMessage")
+  //hide dates for now
+  .row.hide
+    .columns.small-6
+      label(bo-bind="i18n.module_form_label_startdate")
+      input.fullwidth(type="text" ng-model="state.startDate")
+    .columns.small-6
+      label(bo-bind="i18n.module_form_label_enddate")
+      input.fullwidth(type="text" ng-model="state.endDate")
+  .row
+    .columns.medium-6
+    // hide background image for now.
+    .columns.medium-6.hide
+      label(bo-bind='i18n.module_form_label_bgimg')
+      div(ng-if="state.backgroundImageUrl")
+        .picturecontainer(ng-style="{'background-image': 'url(' + TN('webmoduleBackground', state.backgroundImageUrl) + ')'}")
+          .button.circle(ng-click='btnEditBgImg_clickHandler()' bo-bind="i18n.edit")
+      div(ng-if="!state.backgroundImageUrl")
+        .picturecontainer(style="width:120px")
+          .button.circle(ng-click='btnEditBgImg_clickHandler()' bo-bind='i18n.add')
+    .columns.medium-6
+      .row.collapse
+        .columns.small-8
+          label(bo-bind="i18n.module_form_label_multi")
+        .columns.small-4
+          .switch.custom.right(ng-class='state.multi ? "active" : "disabled"')
+            input(id='MultiSwitch' type='checkbox' ng-model="state.multi")
+            label.right(for="MultiSwitch" ng-click="toggleMulti_clickHandler()")
+            div.right(ng-bind="state.multi ? 'ON' : 'OFF'")
+      .row.collapse
+        .columns.small-12
+          br
+      .row.collapse
+        .columns.small-8
+          label(bo-bind="i18n.module_form_label_anon")
+        .columns.small-4
+          .switch.custom.right(ng-class='state.anon ? "active" : "disabled"')
+            input(id='AnonSwitch' type='checkbox' ng-model="state.anon")
+            label.right(for="AnonSwitch" ng-click="toggleAnon_clickHandler()")
+            div.right(ng-bind="state.anon ? 'ON' : 'OFF'")
+      //hide published switch for now
+      .row.collapse.hide
+        .columns.small-8
+          label(bo-bind="i18n.module_form_label_published")
+        .columns.small-4
+          .switch.custom.right(ng-class='state.published ? "active" : "disabled"')
+            input(id='PublishedSwitch' type='checkbox' ng-model="state.published")
+            label.right(for="PublishedSwitch" ng-click="togglePublished_clickHandler()")
+            div.right(ng-bind="state.published ? 'ON' : 'OFF'")
+  .row.buttonrow
+    .columns.small-12
+      a.button.right(ng-click='btnSave_clickHandler()' bo-bind="i18n.save")
+      a.button.secondary.negative.right.space(ng-if="!isnew" ng-click="btnCancel_clickHandler()" bo-bind="i18n.cancel")

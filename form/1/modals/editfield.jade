@@ -1,0 +1,52 @@
+input.hide(id="formBackgroundImage" type='file' name='file' onchange='angular.element(this).scope().fileChanged(this)')
+form.moduleitem.modulecontent.state(name='gPropsForm' bindonce="i18n")
+  .row
+    .small-12.columns.title
+      h2(bo-bind="i18n.module_form_heading_form_settings")
+  .row
+    .columns.small-12
+      tn-alert(lines='state.errors' type='error')
+  .row(ng-if="isnew")
+    .columns.small-12
+      label(bo-bind="i18n.module_form_field_type_title")
+      select(ng-model="state.field" ng-options="e as e.name for e in fields" ng-change="ddType_changeHandler()")
+
+  .row(bindonce="param" ng-repeat="param in state.params")
+    //text fields
+    .columns.small-12(ng-if="param.input === 'text'")
+      label
+        span(bo-bind="param.description")
+        span(ng-if="param.required") *
+      input(type="number" ng-if="param.type === 'maxBytes' || param.type === 'minBytes'" ng-change="checkForMax(param)" placeholder="{{param.description}}" ng-model="param.value")
+      input(type="text" maxlength="120" ng-if="param.type !== 'maxBytes' && param.type !== 'minBytes'" placeholder="{{param.description}}" ng-model="param.value")
+    //select
+    .columns.small-12(ng-if="param.input === 'select'")
+      label
+        span(bo-bind="param.description")
+        span(ng-if="param.required") *
+      select(placeholder="{{param.description}}" ng-model="param.value" ng-options="option as option for option in param.options")
+    //switches
+    .columns.small-6(ng-if="param.input === 'switch'")
+      label(bo-bind="param.description")
+    .columns.small-6(ng-if="param.input === 'switch'")
+      .switch.custom.right(ng-if="param.input === 'switch'" ng-class='param.value ? "active" : "disabled"')
+        input(id="FieldParam_{{param.type}}" type='checkbox' ng-model="param.value")
+        label.right(for="FieldParam_{{param.type}}")
+        div.right(ng-bind="param.value ? 'ON' : 'OFF'")
+    .columns.small-12(ng-if="param.input === 'switch'")
+      br
+    //editablelist
+    .columns.small-12(ng-if="param.input === 'editablelist'")
+      tn-editablelist(instanceid='$tone.toneid' items='param.value' multi="state.field.type === 'CHECKBOXES'" hide-add="state.field.type === 'NAV'")
+      br
+    //pagenav
+    .columns.small-12(ng-if="param.input === 'pagenav'")
+      label
+        span(bo-bind="param.description")
+      select(placeholder="{{param.description}}" ng-model="state.pagenav" ng-options="page as page for page in state.pageBreaks" ng-change="selectPagenav_changeHandler()")
+      tn-editablelist(instanceid='$tone.toneid' items='param.value' multi="false" hide-add="true" disable-editing="true")
+      br
+  .row.buttonrow
+    .columns.small-12
+      a.button.right(ng-click='btnSave_clickHandler()' bo-bind="i18n.save")
+      a.button.secondary.negative.right.space(ng-click="btnCancel_clickHandler()" bo-bind="i18n.cancel")

@@ -1,0 +1,174 @@
+| !{BEGIN_MODULE}
+
+include ../../includes/mixins.jade
+
+if PAGE == 'webmodule'
+  link(rel="stylesheet" type="text/css" href="assets/style.css?98765434545")
+  .webform
+    div(ng-if='formpage === "introview"')
+      .header
+        h2(ng-bind='inputform.title')
+      .introview(ng-show='!issubmitting')
+        p(ng-bind='i18n.offline_submit')
+        a.button.cancel(ng-bind='i18n.later' ng-click='startform()')
+        a.button.submit(ng-bind='i18n.submit' ng-click='submitStored()')
+      .introview(ng-show='issubmitting')
+        p(ng-bind='i18n.submitting')
+        .loader
+
+    // Form Page
+    .formview(ng-if='formpage === "formview"')
+      .header
+        h2(ng-bind='section.title')
+        p(ng-bind='section.description')
+      form(name='form')
+        .formerrors(ng-show='showerrors')
+          h3(ng-bind='inputform.submitErrorMessage')
+          ul
+            li(ng-repeat='error in errors track by $index' ng-bind='i18n.error')
+        .form-field(id='field_{{i}}' ng-repeat="(i, field) in formfields" ng-class='{"error" : field.errors}' ng-init='showFields($last)')
+          .field-wrapper(ng-if='field.type != "BREAK" && field.type != "HEADER"')
+            .label(ng-if='field.type != "BREAK" && field.type != "HEADER" && field.type !="NAV"')
+              h4(ng-bind='field.config.title.value')
+              .required(ng-if='field.config.required.value' ng-init='addTouch("#field_"+i, ".required")') !
+                span required
+              .help(ng-if='field.config.description.value' ng-init='addTouch("#field_"+i, ".help")') ?
+                span(ng-bind='field.config.description.value')
+            // TEXT, URL
+            .text-field(ng-if='field.type === "TEXT" || field.type === "URL"')         
+              input(type="text" placeholder="{{field.config.description.value}}" ng-required="{{field.config.required.value}}" minlength="{{field.config.min.value}}" maxlength="{{field.config.max.value}}" ng-model="field.value" ng-change='field.errors = false' )
+
+            // EMAIL Fields
+            .text-field(ng-if='field.type === "EMAIL"')         
+              input(type="email" placeholder="{{field.config.description.value}}" ng-required="{{field.config.required.value}}" minlength="{{field.config.min.value}}" maxlength="{{field.config.max.value}}" ng-model="field.value" ng-change='field.errors = false' )
+
+            // NUMBER & SCALE Field
+            .number-field(ng-if='field.type === "NUMBER" || field.type === "SCALE"' ng-init="field.value = field.value ? field.value : field.config.min.value || 0")
+              input(type="number" name="number" ng-required="{{field.config.required.value}}" min="{{field.config.min.value || 0}}" max="{{field.config.max.value || 100}}" ng-model="field.value" ng-change='checkNumber(field, form.number.$error)')
+
+            // MEDIA Field
+            .media-field(ng-if='field.type === "MEDIA"' ng-click="addMedia(field)")
+              input.preview(type="text" ng-if='field.value && !field.thumbnail' ng-model='field.value')
+              img(ng-show='field.thumbnail && field.config.mediatype.value ==="Image"' src='{{field.thumbnail}}')
+              video(id='v_{{field.value}}' ng-show='field.thumbnail && field.config.mediatype.value ==="Video"' controls poster='{{field.thumbnail}}')
+                source
+              .button(ng-if='!field.value' ng-bind="'Select '+field.config.mediatype.value")
+
+            // LOCATION Field
+            .location-field(ng-if='field.type === "LOCATION"')
+              .location(ng-class='{"active": field.value}' ng-bind="inputLocation" ng-click="getLocation(field)")
+
+            // DATE TIME Field
+            .datetime-field(ng-if='field.type === "DATETIME"')
+              .datetime(ng-class='{"active": field.value}' ng-click='setDate(field)' ng-bind="displayDate(field)")
+
+            // SWITCH Field
+            .switch-field(ng-if='field.type === "SWITCH"')
+              .switch(ng-class='field.value ? "active" : "disabled"' ng-init="field.value = field.value ? field.value : false")
+                input(id="switch_{{i}}" type='checkbox' ng-model="field.value")
+                label.right(for="switch_{{i}}")
+                div.right(ng-bind="field.value ? 'ON' : 'OFF'")
+
+            // Select Fields, SELECT, RADIO and CHECKBOXES
+            .select-field(ng-if='field.type === "SELECT" || field.type === "RADIO" || field.type === "CHECKBOXES"' ng-switch="hasImages(field.config.choices.value)")
+
+              // Select with Image 
+              ul.images(ng-switch-when="images")
+                li(ng-repeat="(c, item) in field.config.choices.value" ng-init="field.value = getDefualtSelected(field.config.choices.value, true)")
+                  label(ng-if='field.type === "SELECT" || field.type === "RADIO"' ng-click="itemSelected('.select-item-{{i}}','#select-item-{{i}}-{{c}}')")
+                    input(type='radio' name='field_{{i}}' ng-value='item' ng-model='field.value' )
+                    img(src='{{item.url}}' id="select-item-{{i}}-{{c}}" class="select-item-{{i}}")
+                  label(ng-if='field.type === "CHECKBOXES"')
+                    input(type='checkbox' ng-value='item.value' ng-model='item.selectedvalue' )
+                    img(src='{{item.url}}' ng-class="item.selectedvalue ? 'selected' : ''")
+              
+              // Default Selects
+              div(ng-switch-default)
+                div(ng-if='field.type === "SELECT"')
+                  select(ng-init="field.value = getDefualtSelected(field.config.choices.value, true)" ng-model="field.value" ng-options="e.value for e in field.config.choices.value" )
+                ol(ng-if='field.type === "RADIO" || field.type === "CHECKBOXES"')
+                  li(ng-repeat="(c, item) in field.config.choices.value" ng-init="field.value = getDefualtSelected(field.config.choices.value, false)")
+                    span(ng-if='field.type === "RADIO"')
+                      input(type='radio' name='field_{{i}}' ng-value='item.value' ng-model='field.value' ng-checked='item.selected')
+                    span(ng-if='field.type === "CHECKBOXES"')
+                      input(type='checkbox' ng-value='item.value' ng-model='item.selectedvalue' )
+                    label(ng-bind='item.value')
+              input(ng-if='field.config.other.value' type='text' placeholder='Other' ng-model='field.other')
+
+            // PAGE NAV
+            .page-nav(ng-if='field.type === "NAV"')
+              select(ng-model='field.value' ng-change="gotoPage(field)" ng-options="e.value for e in field.config.pages.value" )
+                option(value="" ng-bind="field.config.description.value") 
+
+        // Anomymous Switch and Submit
+        .form-field(ng-if='inputform.anon && !section.next')
+          .switch(ng-class='inputform.isanonymous ? "active" : "disabled"')
+            input(id="is-anonymous" type='checkbox' ng-model="inputform.isanonymous")
+            label.right(for="is-anonymous")
+            div.right(ng-bind="'Send Anonymously'")
+        .form-submit(ng-class='{"tRight": !section.prev}')
+          a.button.prev(ng-if='section.prev' ng-bind='section.prev' ng-click='prevSection()')
+          a.button.next(ng-if='section.next' ng-bind='section.next' ng-click='nextSection()')
+          a.button.submit(ng-if='!section.next' ng-bind="i18n.submit" ng-click='submitForm(form)')
+    // Offline submit page
+    div(ng-if='formpage === "offlineview"')
+      .header
+        h2(ng-bind='inputform.title')
+      .successview
+        h3(ng-bind='i18n.offline_title')
+        p(ng-bind='i18n.offline_message')
+        a.button.cancel(ng-bind='i18n.cancel' ng-click='startform()')
+        a.button.save(ng-bind='i18n.save' ng-click='storeSubmission()')
+
+    // Success page
+    div(ng-if='formpage === "successview"')
+      .header
+        h2(ng-bind='inputform.title')
+      .successview(ng-show='!issubmitting')
+        h3(ng-bind='inputform.submitSuccessTitle')
+        p(ng-bind='inputform.submitSuccessDescription')
+      .successview(ng-show='issubmitting')
+        p(ng-bind='i18n.submitting')
+        .loader
+  
+else if PAGE == 'edit'
+  //+moduleappendableheader
+  .modulecontent.inputform(bindonce="i18n")
+    .row.collapse.modulecontent(bindonce="module")
+      .small-6.small-centered.medium-10.medium-uncentered.columns.title
+        h2.small-only-text-center(bo-bind='module.title')
+    .row.collapse
+      .columns.medium-3
+        a.button.fullwidth(bo-bind="i18n.module_form_btn_add_field" ng-click="btnAddField_clickHandler()")
+      .columns.medium-2: | &nbsp
+      .columns.medium-7
+        ul.button-group.stack-for-small.right
+          li
+            a.button(bo-bind="i18n.module_form_btn_log_data" ng-click="btnLogData_clickHandler()")
+          li
+            a.button(bo-bind="i18n.module_form_btn_settings" ng-click="btnSettings_clickHandler()")
+          li    
+            a.button(bo-bind="i18n.module_form_btn_publish" ng-class='{"secondary": !canPublish}' ng-click="btnPublish_clickHandler()")
+          //li
+            a.button(bo-bind="i18n.revert_changes" ng-class='{"secondary": !canView}' ng-click="revert()")
+          li
+            a.button(bo-bind="i18n.module_form_btn_preview" ng-class='{"secondary": !canView}' ng-click="btnPreview_clickHandler()")
+    .row.collapse
+      .columns.medium-12
+        tn-alert(text='state.unpublishedChanges' type='info')
+    .row.collapse
+      .sortable(ui-sortable="sortableOptions" ng-model="draftRevision.fields")
+        .moduleitem.clearfix(ng-repeat='(i, field) in draftRevision.fields')
+          .dragable(class='fi-thumbnails')
+          span(ng-bind="field.config.title.value")
+          |&nbsp(
+          span(ng-bind="field.name")
+          |)
+          ul.button-group.stack-for-small.right
+            li
+              a.button.tiny(bo-bind="'Edit'" ng-click="btnFieldEdit_clickHandler(field)")
+            li
+              a.button.tiny.secondary(bo-bind="'Remove'" ng-click="btnFieldRemove_clickHandler(field)")
+
+
+| !{END_MODULE}

@@ -1,0 +1,20 @@
+form.moduleitem.modulecontent.state(name='gPropsForm' bindonce="i18n")
+  .row
+    .small-12.columns.title
+      h2(bo-bind="i18n.module_form_btn_preview")
+  .row
+    .small-12.columns
+      .modulecontainer(bindonce="i18n")
+        .row.webmodulepreview
+          .small-12.columns
+            .phone-chrome
+              iframe(src="{{source}}" frameBorder="0")
+              .nav
+                .title(bo-bind="name")
+              .handle
+              .glare
+
+  .row
+  .row.buttonrow
+    .columns.small-12
+      a.button.secondary.negative.right.space(ng-click="btnCancel_clickHandler()" bo-bind="i18n.cancel")

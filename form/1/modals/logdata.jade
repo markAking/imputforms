@@ -1,0 +1,28 @@
+.row(bindonce="i18n")
+  .small-6.columns
+    h2(bo-bind="i18n.module_form_btn_log_data")
+  .small-12.columns
+    table(width="100%")
+      thead(align="right")
+        td(width="10.00%" bo-bind="i18n.module_form_createdat")
+        td(width="10.00%" bo-bind="i18n.module_form_count")
+        td(width="10.00%" bo-bind="i18n.module_form_download")
+      tbody
+        tr
+          td(colspan="10" style="padding:0;" align="right")
+            //inner 
+            #logstream(style="height:320px;overflow-y:scroll;")
+              table(width="100%" style="border:0;")
+                tr(bindonce="log" ng-repeat="log in logs")
+                  td(bo-bind="log.createdat" width="10.00%")
+                  td(bo-bind="log.count" width="10.00%")
+                  td(width="10.00%")
+                    a(href='#' ng-click='downloadlog($event, log.url)' bo-bind="i18n.module_form_download")
+                tr(ng-show="state.hasmore")
+                  td(colspan="10"): button.tiny.fullwidth.secondary(ng-click="viewmore()") view more
+
+              #logstreambottom
+            //inner-end
+.row
+  .small-12.columns
+    button.right(ng-click="close()") Close
